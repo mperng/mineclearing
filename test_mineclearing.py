@@ -307,6 +307,7 @@ class CuboidMoveTests(unittest.TestCase):
         self.assertEqual(c.ship_position[0], 1)
         self.assertEqual(c.ship_position[1], 2)
 
+
 class CuboidFireTests(unittest.TestCase):
     def setUp(self):
         self.fire_dict = {'alpha': [(-1, -1), (1, -1), (1, 1), (-1, 1)],
@@ -464,6 +465,172 @@ class CuboidFireTests(unittest.TestCase):
         self.assertEqual(c.matrix, expected_matrix)
         self.assertEqual(c.mines, expected_mines)
 
+
+class CuboidGetVertLimitsTests(unittest.TestCase):
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testGetVertLimits1(self):
+        c = self.createCuboid('a')
+        self.assertEqual(c.get_vert_limits(), (0, 0))
+
+    def testGetVertLimits2(self):
+        c = self.createCuboid('..Z..\n.....\nZ...Z\n.....\n..Z..\n')
+        self.assertEqual(c.get_vert_limits(), (0, 4))
+
+    def testGetVertLimits3(self):
+        c = self.createCuboid('.....\n.....\nZ...Z\n.....\n..Z..\n')
+        self.assertEqual(c.get_vert_limits(), (2, 4))
+
+    def testGetVertLimits4(self):
+        c = self.createCuboid('a\n.\nZ\nh\na\n')
+        self.assertEqual(c.get_vert_limits(), (0, 4))
+
+    def testGetVertLimits5(self):
+        c = self.createCuboid('.\n.\n.\nh\na\n')
+        self.assertEqual(c.get_vert_limits(), (3, 4))
+
+    def testGetVertLimits6(self):
+        c = self.createCuboid('a\n.\na\n')
+        self.assertEqual(c.get_vert_limits(), (0, 2))
+
+    def testGetVertLimits7(self):
+        c = self.createCuboid('a..\n...\n..a\n')
+        self.assertEqual(c.get_vert_limits(), (0, 2))
+
+    def testGetVertLimits8(self):
+        c = self.createCuboid('.a.')
+        self.assertEqual(c.get_vert_limits(), (0, 0))
+
+
+class CuboidGetHorLimitsTests(unittest.TestCase):
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testGetHorLimits1(self):
+        c = self.createCuboid('a')
+        self.assertEqual(c.get_hor_limits(), (0, 0))
+
+    def testGetHorLimits2(self):
+        c = self.createCuboid('a...a')
+        self.assertEqual(c.get_hor_limits(), (0, 4))
+
+    def testGetHorLimits3(self):
+        c = self.createCuboid('.....\n.....\nZ...Z\n.....\n..Z..\n')
+        self.assertEqual(c.get_hor_limits(), (0, 4))
+
+    def testGetHorLimits4(self):
+        c = self.createCuboid('a\n.\nZ\nh\na\n')
+        self.assertEqual(c.get_hor_limits(), (0, 0))
+
+    def testGetHorLimits5(self):
+        c = self.createCuboid('...\n...\n..U\n...\nU..\n')
+        self.assertEqual(c.get_hor_limits(), (0, 2))
+
+    def testGetHorLimits6(self):
+        c = self.createCuboid('....\n....\n...Z\nZZZ.\n.Z..\n')
+        self.assertEqual(c.get_hor_limits(), (0, 3))
+
+
+class CuboidGetOffsetTests(unittest.TestCase):
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testCuboidGetOffset1(self):
+        c = Cuboid()
+        self.assertEqual(c._get_offset(-1, 2, 5), 3)
+
+    def testCuboidGetOffset2(self):
+        c = Cuboid()
+        self.assertEqual(c._get_offset(-2, 0, 5), 4)
+
+    def testCuboidGetOffset3(self):
+        c = Cuboid()
+        self.assertEqual(c._get_offset(-3, 0, 7), 6)
+
+    def testCuboidGetOffset4(self):
+        c = Cuboid()
+        self.assertEqual(c._get_offset(2, 0, 5), 0)
+
+    def testCuboidGetOffset5(self):
+        c = Cuboid()
+        self.assertEqual(c._get_offset(3, 0, 7), 0)
+
+
+class CuboidStrTests(unittest.TestCase):
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testCuboidStr1(self):
+        c = self.createCuboid('a')
+        self.assertEqual(str(c), 'a')
+
+    def testCuboidStr2(self):
+        c = self.createCuboid('a\n.\nZ\nh\na')
+        self.assertEqual(str(c), 'a\n.\nZ\nh\na')
+
+    def testCuboidStr3(self):
+        c = self.createCuboid('.....\n.....\n....Z\nZZZ..\n.Z...')
+        self.assertEqual(str(c), '.....\n.....\n....Z\nZZZ..\n.Z...')
+
+    def testCuboidStr4(self):
+        c = self.createCuboid('a')
+        c.ship_position = [-1, 0]
+        self.assertEqual(str(c), '.\n.\na')
+
+    def testCuboidStr5(self):
+        c = self.createCuboid('a')
+        c.ship_position = [0, 1]
+        self.assertEqual(str(c), 'a..')
+
+    def testCuboidStr6(self):
+        c = self.createCuboid('a')
+        c.ship_position = [0, 2]
+        self.assertEqual(str(c), 'a....')
+
+    def testCuboidStr6(self):
+        c = self.createCuboid('..Z..\n.....\nZ...Z\n.....\n..Z..\n')
+        c.ship_position = [1, 2]
+        expected = '.....\n.....\n..Z..\n.....\nZ...Z\n.....\n..Z..'
+        self.assertEqual(str(c), expected)
+
+    def testCuboidStr7(self):
+        c = self.createCuboid('a')
+        c.ship_position = [-1, -1]
+        self.assertEqual(str(c), '...\n...\n..a')
+
+    def testCuboidStr7(self):
+        c = self.createCuboid('a...a\na...a\na...a\n')
+        c.ship_position = [-1, -1]
+        expected = '...........\n...........\n...........\n' \
+                   '...........\n......a...a\n......a...a\n......a...a'
+        self.assertEqual(str(c), expected)
+
+    def testCuboidStr8(self):
+        c = self.createCuboid('a...a\na...a\na...a\n')
+        c.ship_position[1] = -3
+        expected = '..........a...a\n..........a...a\n..........a...a'
+        self.assertEqual(str(c), expected)
+
+    def testCuboidStr9(self):
+        c = self.createCuboid('a...a\na...a\na...a\n')
+        c.ship_position[1] = -3
+        c.ship_position[0] = 2
+        expected = '..........a...a\n..........a...a\n..........a...a\n'\
+                   '...............\n...............'
+        self.assertEqual(str(c), expected)
 
 
 if __name__ == '__main__':

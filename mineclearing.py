@@ -1,3 +1,6 @@
+import operator
+
+
 class Simulation(object):
     '''
     A class representing a simulation of a mine-clearing script
@@ -61,8 +64,7 @@ class Cuboid(object):
         Return True if the given x, y values
         are within the bounds of the cuboid
         '''
-        return not (x < 0 or y < 0 or \
-                    x >= self.num_rows or y >= self.num_cols)
+        return not (x < 0 or y < 0 or x >= self.num_rows or y >= self.num_cols)
 
     def update(self):
         '''
@@ -90,8 +92,8 @@ class Cuboid(object):
         removed_mines = []
         for x, y in [(t[0] + ship_x, t[1] + ship_y) for t in fire_positions]:
             if self.in_bounds(x, y) and self.matrix[x][y] != '.':
-               self.matrix[x][y] = '.'
-               removed_mines.append((x, y))
+                self.matrix[x][y] = '.'
+                removed_mines.append((x, y))
         self.mines = filter(lambda x: x not in removed_mines, self.mines)
 
     def move(self, offset_x, offset_y):
@@ -122,11 +124,45 @@ class Cuboid(object):
         '''
         return len(self.mines)
 
+    def get_vert_limits(self):
+        '''
+        Return the first and last rows that contain a mine
+        Assuming that all rows contain same number of columns
+        '''
+        return self.mines[0][0], self.mines[-1][0]
+
+    def get_hor_limits(self):
+        '''
+        Return the first and last columns that contain a mine
+        Assuming that all rows contain same number of columns
+        '''
+        hor_sorted_mines = sorted(self.mines, key=operator.itemgetter(1))
+        return hor_sorted_mines[0][1], hor_sorted_mines[-1][1]
+
+    def _get_offset(self, index, center_index, pad_value):
+        if index < center_index:
+            return (pad_value - 1) / 2 - index
+        else:
+            return 0
+
     def __str__(self):
         '''
         Return the string representation of the Cuboid.
         '''
-        return '\n'.join([''.join(x) for x in self.matrix]) + '\n'
+        s_x, s_y = self.ship_position
+        c_x, c_y = self.num_rows / 2, self.num_cols / 2
+        hor_limits, vert_limits = self.get_hor_limits(), self.get_vert_limits()
+        true_num_rows = (max(abs(vert_limits[0] - s_x),
+                         abs(vert_limits[1] - s_x)) * 2) + 1
+        true_num_cols = (max(abs(hor_limits[0] - s_y),
+                         abs(hor_limits[1] - s_y)) * 2) + 1
+        x_offset = self._get_offset(s_x, c_x, true_num_rows)
+        y_offset = self._get_offset(s_y, c_y, true_num_cols)
+        result = [['.' for j in xrange(true_num_cols)]
+                  for i in xrange(true_num_rows)]
+        for x, y in self.mines:
+            result[x + x_offset][y + y_offset] = self.matrix[x][y]
+        return '\n'.join(''.join(r) for r in result)
 
 
 if __name__ == '__main__':
