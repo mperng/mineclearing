@@ -2,17 +2,32 @@ class Simulation(object):
     '''
     A class representing a simulation of a mine-clearing script
     '''
-    def __init__(self, cuboid, scriptSteps):
-        self.script_steps = []
+    def __init__(self, cuboid):
         self.volleys_fired = 0
         self.cuboid = cuboid
         self.score = 10 * self.cuboid.num_mines()
+        self.move_dict = {'north': (-1, 0), 'south': (1, 0),
+                          'east': (0, 1), 'west': (0, -1)}
+        self.fire_dict = {'alpha': [(-1, -1), (1, -1), (1, 1), (-1, 1)],
+                          'beta': [(-1, 0), (1, 0), (0, -1), (0, 1)],
+                          'gamma': [(0, -1), (0, 0), (0, 1)],
+                          'delta': [(-1, 0), (0, 0), (1, 0)]}
 
-    def run(self):
+    def run(self, script_step):
         '''
         Run the script until an end condition has been reached
         '''
-        pass
+        for cmd in list(script_steps):
+            self.run_cmd(cmd)
+
+    def run_cmd(self, cmd):
+        if cmd in move_dict:
+            c.move(move_dict[cmd])
+        elif cmd in fire_dict:
+            c.fire(*fire_dict[cmd])
+            self.volleys_fired += 1
+        else:
+            print 'invalid command'
 
     def evaluate(self):
         '''
@@ -46,9 +61,8 @@ class Cuboid(object):
         Return True if the given x, y values
         are within the bounds of the cuboid
         '''
-        if x < 0 or y < 0 or x >= self.num_rows or y >= self.num_cols:
-            return False
-        return True
+        return not (x < 0 or y < 0 or \
+                    x >= self.num_rows or y >= self.num_cols)
 
     def update(self):
         '''
@@ -68,39 +82,49 @@ class Cuboid(object):
             return '*'
         return chr(ord(value) - 1)
 
-    def fire(self, firePositions):
+    def fire(self, fire_positions):
         '''
-        modify the cuboid to reflect the result of a fire command
+        Remove mines that fall into the positions specified by a fire command.
         '''
-        pass
+        ship_x, ship_y = self.ship_position
+        removed_mines = []
+        for x, y in [(t[0] + ship_x, t[1] + ship_y) for t in fire_positions]:
+            if self.in_bounds(x, y) and self.matrix[x][y] != '.':
+               self.matrix[x][y] = '.'
+               removed_mines.append((x, y))
+        self.mines = filter(lambda x: x not in removed_mines, self.mines)
 
     def move(self, offset_x, offset_y):
         '''
-        modify the ship position to reflect the result of a move command
+        Modify the ship position to reflect the result of a move command.
         '''
-        pass
+        self.ship_position[0] += offset_x
+        self.ship_position[1] += offset_y
 
     def gen_mine_values(self):
         '''
-        A generator that yields all mine values
+        A generator that yields all mine values.
         '''
         for x, y in iter(self.mines):
             yield self.matrix[x][y]
 
     def mine_missed(self):
         '''
-        return True if a mine was passed
+        Return True if a mine was passed.
         '''
         if filter(lambda x: x == '*', self.gen_mine_values()):
             return True
         return False
 
     def num_mines(self):
+        '''
+        Return the number of mines remaining in the Cuboid.
+        '''
         return len(self.mines)
 
     def __str__(self):
         '''
-        return the string representation of the Cuboid
+        Return the string representation of the Cuboid.
         '''
         return '\n'.join([''.join(x) for x in self.matrix]) + '\n'
 

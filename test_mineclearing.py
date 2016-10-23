@@ -249,5 +249,222 @@ class CuboidNumMinesTests(unittest.TestCase):
         self.assertEqual(c.num_mines(), 4)
 
 
+class CuboidMoveTests(unittest.TestCase):
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testCuboidMove1(self):
+        c = self.createCuboid('a')
+        c.move(*(0, -1))
+        self.assertEqual(c.ship_position[0], 0)
+        self.assertEqual(c.ship_position[1], -1)
+
+    def testCuboidMove2(self):
+        c = self.createCuboid('a')
+        c.move(*(0, 1))
+        self.assertEqual(c.ship_position[0], 0)
+        self.assertEqual(c.ship_position[1], 1)
+
+    def testCuboidMove3(self):
+        c = self.createCuboid('a')
+        c.move(*(1, 0))
+        self.assertEqual(c.ship_position[0], 1)
+        self.assertEqual(c.ship_position[1], 0)
+
+    def testCuboidMove4(self):
+        c = self.createCuboid('a')
+        c.move(*(-1, 0))
+        self.assertEqual(c.ship_position[0], -1)
+        self.assertEqual(c.ship_position[1], 0)
+
+    def testCuboidMove5(self):
+        c = self.createCuboid('..Z..\n.....\nZ...Z\n.....\n..Z..\n')
+        c.move(*(0, -1))
+        self.assertEqual(c.ship_position[0], 2)
+        self.assertEqual(c.ship_position[1], 1)
+
+    def testCuboidMove6(self):
+        c = self.createCuboid('..Y..\n.....\nY...Y\n.....\n..Y..\n')
+        c.ship_position[0], c.ship_position[1] = 2, 1
+        c.move(*(0, 1))
+        self.assertEqual(c.ship_position[0], 2)
+        self.assertEqual(c.ship_position[1], 2)
+
+    def testCuboidMove7(self):
+        c = self.createCuboid('.....\n.....\nX...X\n.....\n..X..\n')
+        c.ship_position[0], c.ship_position[1] = 2, 2
+        c.move(*(1, 0))
+        self.assertEqual(c.ship_position[0], 3)
+        self.assertEqual(c.ship_position[1], 2)
+
+    def testCuboidMove8(self):
+        c = self.createCuboid('.....\n.....\nW...W\n.....\n..W..\n')
+        c.ship_position[0], c.ship_position[1] = 2, 2
+        c.move(*(-1, 0))
+        self.assertEqual(c.ship_position[0], 1)
+        self.assertEqual(c.ship_position[1], 2)
+
+class CuboidFireTests(unittest.TestCase):
+    def setUp(self):
+        self.fire_dict = {'alpha': [(-1, -1), (1, -1), (1, 1), (-1, 1)],
+                          'beta': [(-1, 0), (1, 0), (0, -1), (0, 1)],
+                          'gamma': [(0, -1), (0, 0), (0, 1)],
+                          'delta': [(-1, 0), (0, 0), (1, 0)]}
+
+    def createCuboid(self, cuboid_str):
+        c = Cuboid()
+        for row in map(list, cuboid_str.split()):
+            c.add_row(row)
+        return c
+
+    def testFire1(self):
+        c = self.createCuboid('a')
+        c.fire(self.fire_dict['alpha'])
+        expected = [['a']]
+        self.assertEqual(c.matrix, expected)
+
+    def testFire2(self):
+        c = self.createCuboid('a')
+        c.fire(self.fire_dict['beta'])
+        expected = [['a']]
+        self.assertEqual(c.matrix, expected)
+
+    def testFire3(self):
+        c = self.createCuboid('a')
+        c.fire(self.fire_dict['gamma'])
+        expected = [['.']]
+        self.assertEqual(c.matrix, expected)
+        self.assertEqual(c.mines, [])
+
+    def testFire4(self):
+        c = self.createCuboid('a')
+        c.fire(self.fire_dict['delta'])
+        expected = [['.']]
+        self.assertEqual(c.matrix, expected)
+        self.assertEqual(c.mines, [])
+
+    def testFire5(self):
+        c = self.createCuboid('..Y..\n.....\nY...Y\n.....\n..Y..\n')
+        expected_matrix = map(list,
+                              '.....\n.....\nY...Y\n.....\n..Y..\n'.split())
+        expected_mines = [(2, 0), (2, 4), (4, 2)]
+        c.ship_position[0], c.ship_position[1] = 1, 2
+        c.fire(self.fire_dict['delta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire6(self):
+        c = self.createCuboid('.....\n.....\nY...Y\n.....\n..Y..\n')
+        expected_matrix = map(list,
+                              '.....\n.....\n....Y\n.....\n..Y..\n'.split())
+        expected_mines = [(2, 4), (4, 2)]
+        c.ship_position[0], c.ship_position[1] = 2, -1
+        c.fire(self.fire_dict['gamma'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire7(self):
+        c = self.createCuboid('.....\n.....\n....Y\n.....\n..Y..\n')
+        expected_matrix = map(list,
+                              '.....\n.....\n....Y\n.....\n.....\n'.split())
+        expected_mines = [(2, 4)]
+        c.ship_position[0], c.ship_position[1] = 5, 2
+        c.fire(self.fire_dict['delta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire8(self):
+        c = self.createCuboid('.....\n.....\n....Y\n.....\n..Y..\n')
+        expected_matrix = map(list,
+                              '.....\n.....\n....Y\n.....\n.....\n'.split())
+        expected_mines = [(2, 4)]
+        c.ship_position[0], c.ship_position[1] = 5, 3
+        c.fire(self.fire_dict['alpha'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire9(self):
+        c = self.createCuboid('.....\n.....\n....Y\n.....\n..Y..\n')
+        expected_matrix = map(list,
+                              '.....\n.....\n....Y\n.....\n.....\n'.split())
+        expected_mines = [(2, 4)]
+        c.ship_position[0], c.ship_position[1] = 5, 2
+        c.fire(self.fire_dict['beta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire10(self):
+        c = self.createCuboid('a.a\n...\na.a\n')
+        expected_matrix = map(list, '...\n...\n...\n'.split())
+        expected_mines = []
+        c.fire(self.fire_dict['alpha'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire11(self):
+        c = self.createCuboid('a.a\n...\na.a\n')
+        expected_matrix = map(list, '..a\n...\na.a\n'.split())
+        expected_mines = [(0, 2), (2, 0), (2, 2)]
+        c.ship_position[0], c.ship_position[1] = -1, -1
+        c.fire(self.fire_dict['alpha'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire12(self):
+        c = self.createCuboid('a.a\n...\na.a\n')
+        expected_matrix = map(list, '..a\n...\na.a\n'.split())
+        expected_mines = [(0, 2), (2, 0), (2, 2)]
+        c.ship_position[0], c.ship_position[1] = -1, 0
+        c.fire(self.fire_dict['beta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire13(self):
+        c = self.createCuboid('a.a\n...\na.a\n')
+        expected_matrix = map(list, 'a..\n...\na.a\n'.split())
+        expected_mines = [(0, 0), (2, 0), (2, 2)]
+        c.ship_position[0], c.ship_position[1] = -1, 3
+        c.fire(self.fire_dict['alpha'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire14(self):
+        c = self.createCuboid('a.a\n...\na.a\n')
+        expected_matrix = map(list, 'a..\n...\na..\n'.split())
+        expected_mines = [(0, 0), (2, 0)]
+        c.ship_position[0], c.ship_position[1] = 1, 2
+        c.fire(self.fire_dict['delta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire15(self):
+        c = self.createCuboid('.a.\na.a\n.a.\n')
+        expected_matrix = map(list, '...\n...\n...\n'.split())
+        expected_mines = []
+        c.fire(self.fire_dict['beta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire16(self):
+        c = self.createCuboid('.a.\n.a.\n.a.\n')
+        expected_matrix = map(list, '...\n...\n...\n'.split())
+        expected_mines = []
+        c.fire(self.fire_dict['delta'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+    def testFire17(self):
+        c = self.createCuboid('...\naaa\n...\n')
+        expected_matrix = map(list, '...\n...\n...\n'.split())
+        expected_mines = []
+        c.fire(self.fire_dict['gamma'])
+        self.assertEqual(c.matrix, expected_matrix)
+        self.assertEqual(c.mines, expected_mines)
+
+
+
 if __name__ == '__main__':
     unittest.main()
