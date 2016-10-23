@@ -1,6 +1,6 @@
 import unittest
 
-from mineclearing import Simulation, Cuboid
+from cuboid import Cuboid
 
 
 class CuboidCreateTest(unittest.TestCase):
@@ -547,23 +547,23 @@ class CuboidGetOffsetTests(unittest.TestCase):
 
     def testCuboidGetOffset1(self):
         c = Cuboid()
-        self.assertEqual(c._get_offset(-1, 2, 5), 3)
+        self.assertEqual(c._get_offset(-1, 2, 2), 3)
 
     def testCuboidGetOffset2(self):
         c = Cuboid()
-        self.assertEqual(c._get_offset(-2, 0, 5), 4)
+        self.assertEqual(c._get_offset(-2, 0, 2), 4)
 
     def testCuboidGetOffset3(self):
         c = Cuboid()
-        self.assertEqual(c._get_offset(-3, 0, 7), 6)
+        self.assertEqual(c._get_offset(-3, 0, 3), 6)
 
     def testCuboidGetOffset4(self):
         c = Cuboid()
-        self.assertEqual(c._get_offset(2, 0, 5), 0)
+        self.assertEqual(c._get_offset(2, 0, 2), 0)
 
     def testCuboidGetOffset5(self):
         c = Cuboid()
-        self.assertEqual(c._get_offset(3, 0, 7), 0)
+        self.assertEqual(c._get_offset(3, 0, 3), 0)
 
 
 class CuboidStrTests(unittest.TestCase):
