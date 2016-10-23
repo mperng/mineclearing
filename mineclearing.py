@@ -6,7 +6,7 @@ class Simulation(object):
         self.script_steps = []
         self.volleys_fired = 0
         self.cuboid = cuboid
-        self.score = 10 * self.cuboid.numMines
+        self.score = 10 * self.cuboid.num_mines()
 
     def run(self):
         '''
@@ -26,9 +26,8 @@ class Cuboid(object):
     A class representing a cuboid view in the simulation
     '''
     def __init__(self, cuboid_str=None):
-        self.matrix, self.mine_positions = [], []
+        self.matrix, self.mines = [], []
         self.num_rows, self.num_cols = 0, 0
-        self.mines_remaining = 0
         self.ship_position = None
 
     def add_row(self, row):
@@ -36,11 +35,10 @@ class Cuboid(object):
         Add a row to the underlying matrix representation of this cuboid.
         '''
         self.matrix.append(row)
-        mines = [(self.num_rows, y[0]) for y in enumerate(row) if y[1] != '.']
-        self.mine_positions += mines
+        self.mines += [(self.num_rows, y[0])
+                       for y in enumerate(row) if y[1] != '.']
         self.num_rows += 1
         self.num_cols = max(self.num_cols, len(row))
-        self.mines_remaining += len(mines)
         self.ship_position = [self.num_rows / 2, self.num_cols / 2]
 
     def in_bounds(self, x, y):
@@ -52,11 +50,23 @@ class Cuboid(object):
             return False
         return True
 
-    def decrement_mine_distance(self, value):
+    def update(self):
         '''
-        decrement one mine's distance value
+        decrement all mine distances on the matrix
         '''
-        pass
+        for x, y in iter(self.mines):
+            self.matrix[x][y] = self.update_mine_distance(self.matrix[x][y])
+
+    def update_mine_distance(self, value):
+        '''
+        update a mine's distance char to be 1km less than before
+        assuming valid mine values (a to z, A to Z)
+        '''
+        if ord(value) == 65:
+            return 'z'
+        elif ord(value) == 97:
+            return '*'
+        return chr(ord(value) - 1)
 
     def fire(self, firePositions):
         '''
@@ -69,6 +79,24 @@ class Cuboid(object):
         modify the ship position to reflect the result of a move command
         '''
         pass
+
+    def gen_mine_values(self):
+        '''
+        A generator that yields all mine values
+        '''
+        for x, y in iter(self.mines):
+            yield self.matrix[x][y]
+
+    def mine_missed(self):
+        '''
+        return True if a mine was passed
+        '''
+        if filter(lambda x: x == '*', self.gen_mine_values()):
+            return True
+        return False
+
+    def num_mines(self):
+        return len(self.mines)
 
     def __str__(self):
         '''
