@@ -183,32 +183,6 @@ class CuboidUpdateTests(unittest.TestCase):
         self.assertEqual(c.matrix, expected)
 
 
-class CuboidGenMineValuesTests(unittest.TestCase):
-    def createCuboid(self, cuboid_str):
-        c = Cuboid()
-        for row in map(list, cuboid_str.split()):
-            c.add_row(row)
-        return c
-
-    def testCuboidGenMineValues1(self):
-        c = self.createCuboid('a')
-        expected = ['a']
-        for val, expected in zip(c.gen_mine_values(), expected):
-            self.assertEqual(val, expected)
-
-    def testCuboidGenMineValues2(self):
-        c = self.createCuboid('a\n.\n.\n.\na\n')
-        expected = ['a', 'a']
-        for val, expected in zip(c.gen_mine_values(), expected):
-            self.assertEqual(val, expected)
-
-    def testCuboidGenMineValues3(self):
-        c = self.createCuboid('ggZgg\nabcde\nZaaaZ\nABCDE\naaZaa\n')
-        expected = list('ggZggabcdeZaaaZABCDEaaZaa')
-        for val, expected in zip(c.gen_mine_values(), expected):
-            self.assertEqual(val, expected)
-
-
 class CuboidMineMissedTests(unittest.TestCase):
     def createCuboid(self, cuboid_str):
         c = Cuboid()
@@ -631,7 +605,3 @@ class CuboidStrTests(unittest.TestCase):
         expected = '..........a...a\n..........a...a\n..........a...a\n'\
                    '...............\n...............'
         self.assertEqual(str(c), expected)
-
-
-if __name__ == '__main__':
-    unittest.main()

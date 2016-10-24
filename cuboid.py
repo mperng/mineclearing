@@ -5,14 +5,17 @@ class Cuboid(object):
     '''
     A class representing a cuboid view in the simulation
     '''
-    def __init__(self, cuboid_str=None):
+    def __init__(self, cuboid_str=''):
         self.matrix, self.mines = [], []
         self.num_rows, self.num_cols = 0, 0
         self.ship_position = None
+        for row in map(list, cuboid_str.split()):
+            self.add_row(row)
 
     def add_row(self, row):
         '''
         Add a row to the underlying matrix representation of this cuboid.
+        Assuming row is a list of chars representing values in the cuboid.
         '''
         self.matrix.append(row)
         self.mines += [(self.num_rows, y[0])
@@ -27,6 +30,19 @@ class Cuboid(object):
         are within the bounds of the cuboid
         '''
         return not (x < 0 or y < 0 or x >= self.num_rows or y >= self.num_cols)
+
+    def num_mines(self):
+        '''
+        Return the number of mines remaining in the Cuboid.
+        '''
+        return len(self.mines)
+
+    def mine_missed(self):
+        '''
+        Return True if a the zero distance value for a mine ('*')
+        is found in the mine distance values list.
+        '''
+        return '*' in (self.matrix[x][y] for x, y in iter(self.mines))
 
     def update(self):
         '''
@@ -50,13 +66,17 @@ class Cuboid(object):
         '''
         Remove mines that fall into the positions specified by a fire command.
         '''
-        ship_x, ship_y = self.ship_position
+        def _is_valid(t):
+            return self.in_bounds(t[0], t[1]) and \
+                   self.matrix[t[0]][t[1]] != '.'
+
+        def _add_offsets(t):
+            return (t[0] + self.ship_position[0], t[1] + self.ship_position[1])
         removed_mines = []
-        for x, y in [(t[0] + ship_x, t[1] + ship_y) for t in fire_positions]:
-            if self.in_bounds(x, y) and self.matrix[x][y] != '.':
-                self.matrix[x][y] = '.'
-                removed_mines.append((x, y))
-        self.mines = filter(lambda x: x not in removed_mines, self.mines)
+        for x, y in filter(_is_valid, map(_add_offsets, fire_positions)):
+            self.matrix[x][y] = '.'
+            removed_mines.append((x, y))
+        self.mines = filter(lambda x: x not in removed_mines, iter(self.mines))
 
     def move(self, offset_x, offset_y):
         '''
@@ -65,30 +85,9 @@ class Cuboid(object):
         self.ship_position[0] += offset_x
         self.ship_position[1] += offset_y
 
-    def gen_mine_values(self):
-        '''
-        A generator that yields all mine values.
-        '''
-        for x, y in iter(self.mines):
-            yield self.matrix[x][y]
-
-    def mine_missed(self):
-        '''
-        Return True if a mine was passed.
-        '''
-        if filter(lambda x: x == '*', self.gen_mine_values()):
-            return True
-        return False
-
-    def num_mines(self):
-        '''
-        Return the number of mines remaining in the Cuboid.
-        '''
-        return len(self.mines)
-
     def get_vert_limits(self):
         '''
-        Return the first and last rows that contain a mine.
+        Return the first and last rows in the matrix that contain a mine.
         Assuming that all rows contain same number of columns
         and that all mines are sorted by x index.
         '''
@@ -96,13 +95,18 @@ class Cuboid(object):
 
     def get_hor_limits(self):
         '''
-        Return the first and last columns that contain a mine.
+        Return the first and last columns in the matrix that contain a mine.
         Assuming that all rows contain same number of columns.
         '''
         hor_sorted_mines = sorted(self.mines, key=operator.itemgetter(1))
         return hor_sorted_mines[0][1], hor_sorted_mines[-1][1]
 
     def _get_offset(self, index, center_index, pad_value):
+        '''
+        Used by __str__ function to calculate the offset from
+        the index value (x or y value) that mine
+        locations need to be adjusted for.
+        '''
         if index >= center_index:
             return 0
         return pad_value - index
