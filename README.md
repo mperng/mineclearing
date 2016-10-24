@@ -4,17 +4,21 @@ Evaluation of Starfleet Academy Mine Clearing Algorithms
 # Usage
 To run the program:
 
-> python mineclearing.py /path/to/field_file.txt /path/to/script_file.txt
+```python mineclearing.py /path/to/field_file.txt /path/to/script_file.txt```
 
 Example files are provided (field1.txt and script1.txt and field2.txt and script2.txt).
 
-> python mineclearing.py in/test_field1.txt in/test_script1.txt
-> python mineclearing.py in/test_field2.txt in/test_script2.txt
+```
+python mineclearing.py in/test_field1.txt in/test_script1.txt
+python mineclearing.py in/test_field2.txt in/test_script2.txt
+```
 
 # Unit Tests
 To run unit tests:
 
-> nosetests
+```
+nosetests
+```
 
 # Comments
 ## Cuboid
@@ -30,11 +34,13 @@ big challenges in particular:
 
    For example, in one of the examples given in the problem prompt,
    a field file contained the following:
-    >..a..
-    >.....
-    >.....
-    >.....
-    >..a..
+    ```
+    ..a..
+    .....
+    .....
+    .....
+    ..a..
+    ```
 
    I had assumed that users would only be given "proper" formats for the field,
    such that it only contains the minimum rows / cols to display the ship at
