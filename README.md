@@ -4,7 +4,9 @@ Evaluation of Starfleet Academy Mine Clearing Algorithms
 # Usage
 To run the program:
 
-```python mineclearing.py /path/to/field_file.txt /path/to/script_file.txt```
+```
+python mineclearing.py /path/to/field_file.txt /path/to/script_file.txt
+```
 
 
 Example files are provided (field1.txt and script1.txt and field2.txt and script2.txt).
